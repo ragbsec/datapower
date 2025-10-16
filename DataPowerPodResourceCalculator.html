@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataPower Pod vCPU & Memory Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .slider-thumb::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        .modal-content {
+            transition: transform 0.25s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8 my-8">
+        
+        <header class="mb-6 text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">DataPower Pod Resource Calculator</h1>
+            <p class="text-gray-500 mt-2">Plan your vCPU and memory allocation based on on-premises hardware.</p>
+        </header>
+
+        <!-- Hardware Details Table -->
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">On-Premises Hardware Specifications</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model 8441</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model 8496</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">CPU</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"><a href="https://www.intel.com/content/www/us/en/products/sku/123548/intel-xeon-gold-6126t-processor-19-25m-cache-2-60-ghz/specifications.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Two 12-core 2.60 GHz Intel Xeon Gold 6126T</a></td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"><a href="https://www.intel.com/content/www/us/en/products/sku/215274/intel-xeon-gold-6326-processor-24m-cache-2-90-ghz/specifications.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Two 16-core 2.90 GHz Intel Xeon Gold 6326</a></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">Storage</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">Two 1200 GB HDD</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">Two 1600 GB SDD</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">Memory</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">192 GB (Twelve 2666 MHz DDR4 DIMM)</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">256 GB (Sixteen 3200 MHz DDR4 DIMM)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Inputs Section -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <label for="hardwareModel" class="block text-sm font-medium text-gray-700 mb-1">1. Hardware Model</label>
+                <select id="hardwareModel" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="8441" selected>Model 8441 (48 Threads)</option>
+                    <option value="8496">Model 8496 (64 Threads)</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <label for="numDevices" class="block text-sm font-medium text-gray-700 mb-1">2. Number of Devices</label>
+                <input type="number" id="numDevices" value="1" min="1" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <label for="totalThreads" class="block text-sm font-medium text-gray-700 mb-1">3. Total CPU Threads</label>
+                <input type="number" id="totalThreads" value="48" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-gray-200" disabled>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 col-span-1 md:col-span-3">
+                 <div class="flex justify-between items-center mb-1">
+                    <label for="peakUsage" class="block text-sm font-medium text-gray-700">4. Observed Peak CPU Usage</label>
+                    <span id="peakUsageValue" class="text-blue-600 font-semibold bg-blue-100 px-2 py-1 rounded-md">50%</span>
+                </div>
+                <input type="range" id="peakUsage" min="1" max="100" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb">
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 col-span-1 md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="numPods" class="block text-sm font-medium text-gray-700 mb-1">5. Desired Number of Pods</label>
+                    <input type="number" id="numPods" value="8" min="1" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <div>
+                    <label for="memoryPerPod" class="block text-sm font-medium text-gray-700 mb-1">6. Memory per Pod (GB)</label>
+                    <input type="number" id="memoryPerPod" value="16" min="1" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Allocation Plan & Recommendations</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-sm text-gray-600">Effective CPU Cores to Distribute</p>
+                    <p id="effectiveCores" class="text-2xl font-bold text-blue-600">24</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Baseline Allocation per Pod</p>
+                    <p id="baselineAllocation" class="text-2xl font-bold text-blue-600">3.00 Cores</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-md border border-gray-200">
+                <h3 class="font-semibold text-gray-700 mb-2">Fail-over Analysis</h3>
+                <div class="space-y-2 text-sm">
+                    <p>If <strong class="text-orange-600">1 pod fails</strong>, remaining pods would need <strong id="failover1" class="text-orange-600">3.43 cores</strong> each.</p>
+                    <p>If <strong class="text-red-600">2 pods fail</strong>, remaining pods would need <strong id="failover2" class="text-red-600">4.00 cores</strong> each.</p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-gray-200">
+                     <p class="text-sm font-medium text-gray-700">To tolerate 2 pod failures, recommended vCPU allocation is <strong id="recommendation" class="text-green-600 bg-green-100 px-2 py-1 rounded-md text-base">4 cores</strong> per pod.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- YAML Generation Button -->
+        <div class="mt-6 text-center">
+            <button id="generateYamlBtn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                Generate Pod Config (YAML)
+            </button>
+        </div>
+        
+        <!-- Scenarios Table -->
+        <div class="mt-8">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">Comparison Scenarios</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pods</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cores / Pod</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cores (1 Fail)</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cores (2 Fails)</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Memory (GB)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scenariosTableBody" class="divide-y divide-gray-200">
+                        <!-- Rows will be generated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- References Section -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">References</h3>
+            <ul class="list-disc list-inside space-y-2 text-sm">
+                <li><a href="https://www.ibm.com/docs/en/datapower-gateway/10.5.x?topic=installation-specifications-features" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">DataPower Gateway Specifications & Features</a></li>
+                <li><a href="https://www.ibm.com/docs/en/datapower-operator/1.16.0?topic=install-prerequisites" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">DataPower Operator Prerequisites</a></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- YAML Modal -->
+    <div id="yamlModal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-2xl transform -translate-y-10">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 class="text-lg font-semibold">Kubernetes Configuration YAML</h3>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <div class="p-4">
+                <pre class="bg-gray-800 text-white text-sm rounded-md p-4 max-h-96 overflow-y-auto"><code id="yamlContent"></code></pre>
+            </div>
+            <div class="flex justify-end items-center gap-3 p-4 bg-gray-50 rounded-b-lg">
+                <button id="copyYamlBtn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-md hover:bg-gray-300 text-sm">Copy to Clipboard</button>
+                <button id="downloadYamlBtn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 text-sm">Download .yaml</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const hardwareModelEl = document.getElementById('hardwareModel');
+        const numDevicesEl = document.getElementById('numDevices');
+        const totalThreadsEl = document.getElementById('totalThreads');
+        const peakUsageEl = document.getElementById('peakUsage');
+        const peakUsageValueEl = document.getElementById('peakUsageValue');
+        const numPodsEl = document.getElementById('numPods');
+        const memoryPerPodEl = document.getElementById('memoryPerPod');
+
+        const effectiveCoresEl = document.getElementById('effectiveCores');
+        const baselineAllocationEl = document.getElementById('baselineAllocation');
+        const failover1El = document.getElementById('failover1');
+        const failover2El = document.getElementById('failover2');
+        const recommendationEl = document.getElementById('recommendation');
+        const scenariosTableBodyEl = document.getElementById('scenariosTableBody');
+        
+        const generateYamlBtn = document.getElementById('generateYamlBtn');
+        const yamlModal = document.getElementById('yamlModal');
+        const yamlContentEl = document.getElementById('yamlContent');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const copyYamlBtn = document.getElementById('copyYamlBtn');
+        const downloadYamlBtn = document.getElementById('downloadYamlBtn');
+
+        const hardwareSpecs = {
+            '8441': { threads: 48 },
+            '8496': { threads: 64 }
+        };
+
+        let currentConfig = {};
+
+        function calculate() {
+            // --- Get Inputs ---
+            const totalThreads = parseInt(totalThreadsEl.value) || 0;
+            const peakUsage = parseInt(peakUsageEl.value) || 0;
+            const numPods = parseInt(numPodsEl.value) || 1;
+            const memoryPerPod = parseInt(memoryPerPodEl.value) || 0;
+
+            if (totalThreads <= 0 || numPods <= 0) {
+                return;
+            }
+
+            // --- Core Calculations ---
+            const effectiveCores = totalThreads * (peakUsage / 100);
+            const coresPerPod = effectiveCores / numPods;
+            
+            let coresFail1 = numPods > 1 ? effectiveCores / (numPods - 1) : null;
+            let coresFail2 = numPods > 2 ? effectiveCores / (numPods - 2) : null;
+            const recommendedCpu = Math.ceil(coresFail2 || coresPerPod);
+
+            // --- Update UI ---
+            effectiveCoresEl.textContent = effectiveCores.toFixed(2);
+            baselineAllocationEl.textContent = `${coresPerPod.toFixed(2)} Cores`;
+            failover1El.textContent = coresFail1 ? `${coresFail1.toFixed(2)} cores` : 'N/A';
+            failover2El.textContent = coresFail2 ? `${coresFail2.toFixed(2)} cores` : 'N/A';
+            recommendationEl.textContent = `${recommendedCpu} cores`;
+            peakUsageValueEl.textContent = `${peakUsage}%`;
+
+            // --- Store config for YAML generation ---
+            currentConfig = {
+                replicas: numPods,
+                requestCpu: coresPerPod,
+                requestMemory: memoryPerPod,
+                limitCpu: recommendedCpu,
+                limitMemory: memoryPerPod * 2, // A common practice: limit is 2x request
+                maxReplicas: Math.ceil(numPods * 1.5)
+            };
+
+            // --- Generate Scenarios Table ---
+            generateScenariosTable(effectiveCores, memoryPerPod);
+        }
+        
+        function generateScenariosTable(effectiveCores, memoryPerPod) {
+            scenariosTableBodyEl.innerHTML = '';
+            const podCounts = [4, 6, 8, 10, 12, 16];
+            podCounts.forEach(count => {
+                const baseCores = effectiveCores / count;
+                const fail1 = count > 1 ? (effectiveCores / (count - 1)).toFixed(2) : 'N/A';
+                const fail2 = count > 2 ? (effectiveCores / (count - 2)).toFixed(2) : 'N/A';
+                const totalMem = count * memoryPerPod;
+                const row = `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${count}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${baseCores.toFixed(2)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${fail1}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${fail2}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${totalMem} GB</td>
+                    </tr>`;
+                scenariosTableBodyEl.innerHTML += row;
+            });
+        }
+
+        function updateAndRecalculate() {
+            const selectedModel = hardwareModelEl.value;
+            const numDevices = parseInt(numDevicesEl.value) || 1;
+
+            if (selectedModel === 'custom') {
+                totalThreadsEl.disabled = false;
+                totalThreadsEl.classList.remove('bg-gray-200');
+            } else {
+                totalThreadsEl.disabled = true;
+                totalThreadsEl.classList.add('bg-gray-200');
+                totalThreadsEl.value = hardwareSpecs[selectedModel].threads * numDevices;
+            }
+            calculate();
+        }
+
+        function generateYAML() {
+            const { replicas, requestCpu, requestMemory, limitCpu, limitMemory, maxReplicas } = currentConfig;
+            
+            // Convert to millicores. Round up request, limit is already rounded up to the nearest core.
+            const requestCpuMilli = Math.ceil(requestCpu * 1000);
+            const limitCpuMilli = limitCpu * 1000;
+
+            const yamlString = `
+# Generated by the DataPower Pod Resource Calculator
+# This configuration provides a resilient starting point for your deployment.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datapower-deployment-resilient
+spec:
+  replicas: ${replicas}
+  selector:
+    matchLabels:
+      app: datapower
+  template:
+    metadata:
+      labels:
+        app: datapower
+    spec:
+      containers:
+      - name: datapower-container
+        image: ibmcom/datapower # Replace with your specific DataPower image
+        resources:
+          requests:
+            # Original fractional CPU request: ${requestCpu.toFixed(3)} cores
+            cpu: "${requestCpuMilli}m"
+            memory: "${requestMemory}Gi"
+          limits:
+            # Original CPU limit: ${limitCpu} cores (rounded up for fail-over)
+            cpu: "${limitCpuMilli}m"
+            memory: "${limitMemory}Gi"
+
+---
+
+# Autoscaling is recommended to handle traffic spikes and optimize costs.
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: datapower-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: datapower-deployment-resilient
+  minReplicas: ${replicas}
+  maxReplicas: ${maxReplicas}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80 # Scale up when CPU usage averages 80%
+`;
+            return yamlString.trim();
+        }
+
+        function openModal() {
+            const yamlText = generateYAML();
+            yamlContentEl.textContent = yamlText;
+            yamlModal.classList.remove('opacity-0', 'pointer-events-none');
+            yamlModal.querySelector('.modal-content').classList.remove('-translate-y-10');
+        }
+
+        function closeModal() {
+            yamlModal.classList.add('opacity-0');
+            yamlModal.querySelector('.modal-content').classList.add('-translate-y-10');
+            setTimeout(() => {
+                yamlModal.classList.add('pointer-events-none');
+            }, 250); // Match transition duration
+        }
+
+        function copyYAML() {
+            navigator.clipboard.writeText(yamlContentEl.textContent).then(() => {
+                copyYamlBtn.textContent = 'Copied!';
+                setTimeout(() => { copyYamlBtn.textContent = 'Copy to Clipboard'; }, 2000);
+            });
+        }
+
+        function downloadYAML() {
+            const yamlText = yamlContentEl.textContent;
+            const blob = new Blob([yamlText], { type: 'application/x-yaml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'datapower-config.yaml';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // --- Event Listeners ---
+        hardwareModelEl.addEventListener('change', updateAndRecalculate);
+        numDevicesEl.addEventListener('input', updateAndRecalculate);
+        [totalThreadsEl, peakUsageEl, numPodsEl, memoryPerPodEl].forEach(el => el.addEventListener('input', calculate));
+        generateYamlBtn.addEventListener('click', openModal);
+        closeModalBtn.addEventListener('click', closeModal);
+        copyYamlBtn.addEventListener('click', copyYAML);
+        downloadYamlBtn.addEventListener('click', downloadYAML);
+        yamlModal.addEventListener('click', (e) => { if (e.target === yamlModal) closeModal(); });
+
+
+        // --- Initial Load ---
+        window.addEventListener('load', updateAndRecalculate);
+    </script>
+</body>
+</html>
+
